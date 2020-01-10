@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
  
 include $(LOCAL_PATH)/config.mak
- 
+LOCAL_DISABLE_FATAL_LINKER_WARNINGS=true
 LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -std=c99 -mfloat-abi=softfp -mfpu=neon -marm -march=armv7-a -mtune=cortex-a8
 CFLAGS += -mfpu=neon
 
@@ -1204,5 +1204,5 @@ LOCAL_SRC_FILES := $(tempSrc)
 
 LOCAL_ARM_MODE := arm
 
-include $(BUILT_SHARED_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
