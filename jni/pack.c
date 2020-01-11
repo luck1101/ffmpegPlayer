@@ -122,8 +122,23 @@ jboolean Java_sysu_ss_xu_FFmpeg_findVideoStream( JNIEnv* env, jobject thiz )
 jboolean Java_sysu_ss_xu_FFmpeg_avcodecFindDecoder( JNIEnv* env, jobject thiz )
 {
 	pCodecCtx=pFormatCtx->streams[videoStream]->codec;
-  
-	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+	sprintf(debugMsg, "pCodecCtx->codec_id = %d,CODEC_ID_H264 = %d", pCodecCtx->codec_id,CODEC_ID_H264);
+	INFO(debugMsg);
+	//add by smile
+	if(pCodecCtx->codec_id == CODEC_ID_H264){
+		  INFO("video is h264.\n");
+		  pCodec = avcodec_find_decoder_by_name("h264_cedarX");
+		  if(pCodec == NULL){
+			  INFO("couldn't find h264_cedarX.\n");
+			  pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+		  }else{
+			  INFO("find h264_cedarX.\n");
+		  }
+	  }else{
+		  pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+	  }
+  //end
+	//pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) 
 		return 0;
 	else
@@ -304,8 +319,18 @@ INFO(filePath);
     	RE("failed videostream == -1");
   
   pCodecCtx=pFormatCtx->streams[videoStream]->codec;
-  
-  pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+  if(pCodecCtx->codec_id == CODEC_ID_H264){
+	  INFO("video is h264.\n");
+	  pCodec = avcodec_find_decoder_by_name("h264_cedarX");
+	  if(pCodec == NULL){
+		  INFO("couldn't find h264_cedarX.\n");
+		  pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+	  }else{
+		  INFO("find h264_cedarX.\n");
+	  }
+  }else{
+	  pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+  }
   if(pCodec==NULL) {
     RE("Unsupported codec!");
   }

@@ -262,6 +262,7 @@ AVCODEC_C_FILES-$(CONFIG_H264_DECODER)            += h264.c                     
                                           h264_refs.c h264_cavlc.c h264_cabac.c\
                                           mpegvideo.c error_resilience.c
 AVCODEC_C_FILES-$(CONFIG_H264_DXVA2_HWACCEL)      += dxva2_h264.c
+AVCODEC_C_FILES-$(CONFIG_H264_CEDARX_DECODER)            += cedarX_h264.c  
 AVCODEC_C_FILES-$(CONFIG_H264_VAAPI_HWACCEL)      += vaapi_h264.c
 AVCODEC_C_FILES-$(CONFIG_H264_VDA_HWACCEL)        += vda_h264.c
 AVCODEC_C_FILES-$(CONFIG_HUFFYUV_DECODER)         += huffyuv.c
