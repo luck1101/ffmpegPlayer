@@ -590,6 +590,12 @@ int av_open_input_file(AVFormatContext **ic_ptr, const char *filename,
 {
     int err;
     AVDictionary *opts = convert_format_parameters(ap);
+	av_log(NULL, AV_LOG_DEBUG, "888888888888888888av_open_input_file\n");
+	#undef printf
+	#undef fprintf
+	printf("888888888888888888av_open_input_file\n");
+	fprintf(stderr, "888888888888888888av_open_input_file %d\n", 1);
+	fprintf(stdout, "888888888888888888av_open_input_file %d\n", 1);
 
     AV_NOWARN_DEPRECATED(
     if (!ap || !ap->prealloced_context)

@@ -41,6 +41,7 @@
 #include "vdpau_internal.h"
 #include "libavutil/avassert.h"
 
+
 #include "cabac.h"
 
 //#undef NDEBUG
@@ -1129,6 +1130,8 @@ av_cold int ff_h264_decode_init(AVCodecContext *avctx){
     H264Context *h= avctx->priv_data;
     MpegEncContext * const s = &h->s;
     int i;
+	//fprintf(stderr, "ff_h264_decode_init\n");
+	av_log(avctx, AV_LOG_ERROR, "ff_h264_decode_init\n");
 
     MPV_decode_defaults(s);
 
@@ -4042,6 +4045,8 @@ static int decode_frame(AVCodecContext *avctx,
 
     s->flags= avctx->flags;
     s->flags2= avctx->flags2;
+	//fprintf(stderr, "decode_frame buf_size = %d\n",buf_size);
+	av_log(avctx, AV_LOG_ERROR, "decode_frame\n");
 
    /* end of stream, output what is still in the buffers */
  out:
@@ -4223,6 +4228,8 @@ av_cold int ff_h264_decode_end(AVCodecContext *avctx)
 {
     H264Context *h = avctx->priv_data;
     MpegEncContext *s = &h->s;
+	//fprintf(stderr, "ff_h264_decode_end\n");
+	av_log(avctx, AV_LOG_ERROR, "ff_h264_decode_end\n");
 
     ff_h264_free_context(h);
 
