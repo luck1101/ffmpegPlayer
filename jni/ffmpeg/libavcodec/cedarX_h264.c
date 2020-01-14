@@ -46,14 +46,16 @@ av_cold int decode_init(AVCodecContext *avctx){
 	av_log(NULL, AV_LOG_WARNING, "decode_init\n");
 
 	hcedarv = libcedarv_init(&ret);
+	av_log(NULL, AV_LOG_WARNING, "libcedarv_init ret = %d,hcedarv = %p.\n",ret,hcedarv);
 	if(ret < 0 || hcedarv == NULL)
 	{
-		//printf("libcedarv_init fail, test program quit.\n");
+		av_log(NULL, AV_LOG_WARNING, "libcedarv_init fail, test program quit.\n");
 	}
 
 	stream_info.video_width = avctx->width;
 	stream_info.video_height = avctx->height;
 	stream_info.format = CEDARV_STREAM_FORMAT_H264; 
+	stream_info.sub_format = CEDARV_SUB_FORMAT_UNKNOW;
 	stream_info.container_format = CEDARV_CONTAINER_FORMAT_UNKNOW;
 
 	stream_info.init_data = NULL;
@@ -64,7 +66,7 @@ av_cold int decode_init(AVCodecContext *avctx){
 	ret = hcedarv->set_vstream_info(hcedarv, &stream_info);
 	if(ret < 0)
 	{
-		//printf("set video stream information to libcedarv fail, test program quit.\n");
+		av_log(NULL, AV_LOG_WARNING, "set video stream information to libcedarv fail, test program quit.\n");
 	}
 
 	//* open libcedarv.
@@ -72,7 +74,7 @@ av_cold int decode_init(AVCodecContext *avctx){
 
 	if(ret < 0)
 	{
-		//printf("open libcedarv fail ret=%d, test program quit.\n",ret);
+		av_log(NULL, AV_LOG_WARNING,"open libcedarv fail ret=%d, test program quit.\n",ret);
 		
 	}
 		
@@ -81,7 +83,7 @@ av_cold int decode_init(AVCodecContext *avctx){
 	bFirstFrame = 1;
 
 
-	//printf("cedarv open ok\n");
+	av_log(NULL, AV_LOG_WARNING,"cedarv open ok\n");
 	return 0;
     
 }
@@ -99,65 +101,46 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 	AVFrame *pict = data;
     int buf_index;
 	int ret = -1;
+	int64_t pts = avpkt->pts;
 	av_log(NULL, AV_LOG_WARNING, "decode_frame buf_size = %d\n",buf_size);
-	/*if(1 == bFirstFrame){
-		if(buf_size != 0){
-			memset(&stream_data_info, 0, sizeof(cedarv_stream_data_info_t));
-			ret = hcedarv->request_write(hcedarv, buf_size, &buf0, &bufsize0, &buf1, &bufsize1);
-			if(ret < 0)
-			{
-				av_log(NULL, AV_LOG_WARNING,("request bitstream buffer fail.\n");
-				return ret;
-			}
-			if(buf_size <= bufsize0){
-				mem_cpy(buf0, buf, bufsize0);
-			}
-			// set stream data info
-			stream_data_info.pts = -1;	//* get video pts
-			stream_data_info.lengh = buf_size;
-			//stream_data_info.flags = CEDARV_FLAG_PTS_VALID | CEDARV_FLAG_FIRST_PART | CEDARV_FLAG_LAST_PART;
-
-			stream_data_info.flags = CEDARV_FLAG_FIRST_PART | CEDARV_FLAG_LAST_PART;
-			
-			//* update data to libcedarv.
-			hcedarv->update_data(hcedarv, &stream_data_info);
-		}
-	*/}
 	if(buf_size != 0){
 		memset(&stream_data_info, 0, sizeof(cedarv_stream_data_info_t));
 		ret = hcedarv->request_write(hcedarv, buf_size, &buf0, &bufsize0, &buf1, &bufsize1);
+		av_log(NULL, AV_LOG_WARNING, "decode_frame bufsize0 = %d,bufsize1=%d\n",bufsize0,bufsize1);
 		if(ret < 0)
 		{
-			//printf("request bitstream buffer fail.\n");
 			av_log(NULL, AV_LOG_WARNING, "request bitstream buffer fail.\n");
 			return ret;
 		}
 		if(buf_size <= bufsize0) {
-			mem_cpy(buf0, buf, bufsize0);
+			mem_cpy(buf0, buf, buf_size);
 			//cedarx_cache_op(buf0, (buf0 + bufsize0), 1); //flush cache
 		}
 
 		else
 		{
 			//printf("private data request write error\n");
+			mem_cpy(buf0,buf,bufsize0);
+			mem_cpy(buf1,(buf+bufsize0),bufsize1);
 		}
 		// set stream data info
-		stream_data_info.pts = -1;	//* get video pts
+		stream_data_info.pts = pts;	//* get video pts
 		stream_data_info.lengh = buf_size;
-		//stream_data_info.flags = CEDARV_FLAG_PTS_VALID | CEDARV_FLAG_FIRST_PART | CEDARV_FLAG_LAST_PART;
+		stream_data_info.flags = CEDARV_FLAG_PTS_VALID | CEDARV_FLAG_FIRST_PART | CEDARV_FLAG_LAST_PART;
 
-		stream_data_info.flags = CEDARV_FLAG_FIRST_PART | CEDARV_FLAG_LAST_PART;
+		//stream_data_info.flags = CEDARV_FLAG_FIRST_PART | CEDARV_FLAG_LAST_PART;
 		
 		//* update data to libcedarv.
 		hcedarv->update_data(hcedarv, &stream_data_info);
 		ret = hcedarv->decode(hcedarv);
-		//printf("decode result: %d\n", ret);
+		av_log(NULL, AV_LOG_WARNING,"decode result: %d\n", ret);
 		if(ret == CEDARV_RESULT_ERR_NO_MEMORY || ret == CEDARV_RESULT_ERR_UNSUPPORTED)
 		{
-			//printf("bitstream is unsupported.\n");
+			av_log(NULL, AV_LOG_WARNING, "bitstream is unsupported.\n");
 			return -1;
 		}
 		ret = hcedarv->display_request(hcedarv, &ce_picture);
+		av_log(NULL, AV_LOG_WARNING, "display_request = %d.\n",ret);
 		if(ret == CEDARV_RESULT_OK){
 			//todo:get decode data from ce_picture
 			ret = hcedarv->display_release(hcedarv, ce_picture.id);
