@@ -1,7 +1,16 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := libcedarxalloc
+LOCAL_SRC_FILES := $(LOCAL_PATH)/libcedarv/adapter/cdxalloc/libcedarxalloc.a
+include $(PREBUILT_STATIC_LIBRARY)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := libvecore
+LOCAL_SRC_FILES := $(LOCAL_PATH)/libcedarv/libvecore/libvecore.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
  
 include $(LOCAL_PATH)/config.mak
@@ -1194,16 +1203,36 @@ AVFORMAT_C_FILES += $(AVFORMAT_C_FILES-yes)
  
 AVFORMAT_SRC_FILES = $(addprefix libavformat/, $(sort $(AVFORMAT_C_FILES)))
 
+CEDARX_SRC_FILE += \
+    libcedarv/libcedarv/vdecoder.c \
+    libcedarv/libcedarv/awprintf.c \
+    libcedarv/fbm/fbm.c \
+    libcedarv/vbv/vbv.c \
+    libcedarv/adapter/libve_adapter.c \
+    libcedarv/adapter/os_adapter.c
+
 tempSrc := \
 $(SWSCALE_SRC_FILES) \
 $(AVUTIL_SRC_FILES) \
 $(AVCODEC_SRC_FILES) \
 $(AVCODEC_ARM_SRC_FILES) \
-$(AVFORMAT_SRC_FILES)
+$(AVFORMAT_SRC_FILES) \
+$(CEDARX_SRC_FILE)
+
+LOCAL_C_INCLUDES += \
+    $(LOCAL_PATH) \
+    $(LOCAL_PATH)/libcedarv/adapter \
+    $(LOCAL_PATH)/libcedarv/adapter/cdxalloc \
+    $(LOCAL_PATH)/libcedarv/fbm \
+    $(LOCAL_PATH)/libcedarv/libcedarv \
+    $(LOCAL_PATH)/libcedarv/libvecore \
+    $(LOCAL_PATH)/libcedarv/vbv
 
 LOCAL_SRC_FILES := $(tempSrc)
 
 LOCAL_ARM_MODE := arm
-
+LOCAL_LDLIBS += -llog
+LOCAL_STATIC_LIBRARIES := libcedarxalloc libvecore
 include $(BUILD_SHARED_LIBRARY)
+
 

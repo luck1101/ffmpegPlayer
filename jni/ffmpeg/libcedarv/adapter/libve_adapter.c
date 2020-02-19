@@ -14,7 +14,7 @@
 #include "vbv.h"
 #include "os_adapter.h"
 #include "vdecoder_config.h"
-#include <cedardev_api.h>		//* you can find this header file in cedarX/CedarX/include/include_platform/CHIP_F20
+#include "cedardev_api.h"		//* you can find this header file in cedarX/CedarX/include/include_platform/CHIP_F20
 #include "cdxalloc.h"
 
 //****************************************************************************//

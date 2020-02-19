@@ -1,0 +1,7 @@
+jni/libs/
+jni/obj/
+.classpath
+.project
+jni/ffmpeg/obj/local/armeabi-v7a/
+.settings/
+libs/
