@@ -30,7 +30,7 @@
 #include "internal.h"
 #include "dsputil.h"
 #include "avcodec.h"
-#include "libcedarv/libcedarv/libcedarv.h"	//* for decoding video
+#include <libcedarv.h>	//* for decoding video
 
 
 cedarv_decoder_t*	 		hcedarv;
@@ -43,7 +43,7 @@ static int bFirstFrame = 0;
 av_cold int decode_init(AVCodecContext *avctx){
 	int ret;
 
-	av_log(NULL, AV_LOG_WARNING, "decode_init\n");
+	av_log(NULL, AV_LOG_WARNING, "decode_init width:height=%d:%d\n",avctx->width,avctx->height);
 
 	hcedarv = libcedarv_init(&ret);
 	av_log(NULL, AV_LOG_WARNING, "libcedarv_init ret = %d,hcedarv = %p.\n",ret,hcedarv);
@@ -51,11 +51,14 @@ av_cold int decode_init(AVCodecContext *avctx){
 	{
 		av_log(NULL, AV_LOG_WARNING, "libcedarv_init fail, test program quit.\n");
 	}
-
+	
 	stream_info.video_width = avctx->width;
 	stream_info.video_height = avctx->height;
+	//stream_info.frame_rate = 30*1000;
+	//stream_info.frame_duration = 0;
+	//stream_info.aspect_ratio = 800/480*1000;
 	stream_info.format = CEDARV_STREAM_FORMAT_H264; 
-	stream_info.sub_format = CEDARV_SUB_FORMAT_UNKNOW;
+	stream_info.sub_format = STREAM_SUB_FORMAT_UNKNOW;
 	stream_info.container_format = CEDARV_CONTAINER_FORMAT_UNKNOW;
 
 	stream_info.init_data = NULL;

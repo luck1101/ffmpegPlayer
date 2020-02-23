@@ -1,18 +1,45 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libcedarxalloc
-LOCAL_SRC_FILES := $(LOCAL_PATH)/libcedarv/adapter/cdxalloc/libcedarxalloc.a
-include $(PREBUILT_STATIC_LIBRARY)
+LOCAL_MODULE := libcedarxosal
+LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarxosal.so 
+include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libvecore
-LOCAL_SRC_FILES := $(LOCAL_PATH)/libcedarv/libvecore/libvecore.a
-include $(PREBUILT_STATIC_LIBRARY)
+LOCAL_MODULE := libcedarv
+LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarv.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libcedarv_base
+LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarv_base.so 
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libcedarv_adapter
+LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarv_adapter.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libve
+LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libve.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libsunxi_alloc
+LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libsunxi_alloc.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libaw_h264enc
+LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libaw_h264enc.so 
+include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
- 
+CEDARX_PATH:=/home/whx/urmet/android/framework/av/media/CedarX-Projects/CedarX/
+CEDARX_CHIP_VERSION:=F50
+CEDARX_USE_SUNXI_MEM_ALLOCATOR:=Y
 include $(LOCAL_PATH)/config.mak
 LOCAL_DISABLE_FATAL_LINKER_WARNINGS=true
 LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -std=c99 -mfloat-abi=softfp -mfpu=neon -marm -march=armv7-a -mtune=cortex-a8
@@ -1208,31 +1235,42 @@ CEDARX_SRC_FILE += \
     libcedarv/libcedarv/awprintf.c \
     libcedarv/fbm/fbm.c \
     libcedarv/vbv/vbv.c \
+	libcedarv/adapter/cdxalloc/cdxalloc.c \
     libcedarv/adapter/libve_adapter.c \
     libcedarv/adapter/os_adapter.c
 
 tempSrc := \
-$(SWSCALE_SRC_FILES) \
-$(AVUTIL_SRC_FILES) \
-$(AVCODEC_SRC_FILES) \
-$(AVCODEC_ARM_SRC_FILES) \
-$(AVFORMAT_SRC_FILES) \
-$(CEDARX_SRC_FILE)
-
-LOCAL_C_INCLUDES += \
-    $(LOCAL_PATH) \
-    $(LOCAL_PATH)/libcedarv/adapter \
-    $(LOCAL_PATH)/libcedarv/adapter/cdxalloc \
-    $(LOCAL_PATH)/libcedarv/fbm \
-    $(LOCAL_PATH)/libcedarv/libcedarv \
-    $(LOCAL_PATH)/libcedarv/libvecore \
-    $(LOCAL_PATH)/libcedarv/vbv
+	$(SWSCALE_SRC_FILES) \
+	$(AVUTIL_SRC_FILES) \
+	$(AVCODEC_SRC_FILES) \
+	$(AVCODEC_ARM_SRC_FILES) \
+	$(AVFORMAT_SRC_FILES) 
+#$(CEDARX_SRC_FILE)
+LOCAL_C_INCLUDES := $(LOCAL_PATH)\
+			$(CEDARX_PATH)/include \
+			$(CEDARX_PATH)/include/include_platform/CHIP_$(CEDARX_CHIP_VERSION) \
+			$(CEDARX_PATH)/include/include_platform/CHIP_$(CEDARX_CHIP_VERSION)/disp \
+			$(CEDARX_PATH)/include/include_cedarv \
+			$(CEDARX_PATH)/include/include_vencoder 
 
 LOCAL_SRC_FILES := $(tempSrc)
 
+LOCAL_SHARED_LIBRARIES := \
+						  libcedarv_adapter \
+						  libcedarv_base \
+						  libcedarxosal \
+						  libve \
+						  libcedarv \
+						  libaw_h264enc
+ifeq ($(CEDARX_USE_SUNXI_MEM_ALLOCATOR),Y)
+LOCAL_SHARED_LIBRARIES += \
+						 libsunxi_alloc \
+						 
+LOCAL_CFLAGS += -DUSE_SUNXI_MEM_ALLOCATOR						 
+endif	
+
 LOCAL_ARM_MODE := arm
 LOCAL_LDLIBS += -llog
-LOCAL_STATIC_LIBRARIES := libcedarxalloc libvecore
 include $(BUILD_SHARED_LIBRARY)
 
 
