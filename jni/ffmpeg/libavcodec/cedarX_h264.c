@@ -41,7 +41,13 @@ cedarv_picture_t			ce_picture;
 
 static int bFirstFrame = 0;
 av_cold int decode_init(AVCodecContext *avctx){
-	int ret;
+	int ret = -1;
+	/* init video engine */
+	ret = cedarx_hardware_init(0);
+	if (ret < 0)
+	{
+		av_log(NULL, AV_LOG_WARNING, "cedarx_hardware_init fail, test program quit.\n");
+	}
 
 	av_log(NULL, AV_LOG_WARNING, "decode_init width:height=%d:%d\n",avctx->width,avctx->height);
 
@@ -58,7 +64,6 @@ av_cold int decode_init(AVCodecContext *avctx){
 	//stream_info.frame_duration = 0;
 	//stream_info.aspect_ratio = 800/480*1000;
 	stream_info.format = CEDARV_STREAM_FORMAT_H264; 
-	stream_info.sub_format = STREAM_SUB_FORMAT_UNKNOW;
 	stream_info.container_format = CEDARV_CONTAINER_FORMAT_UNKNOW;
 
 	stream_info.init_data = NULL;
@@ -166,6 +171,7 @@ av_cold int decode_close(AVCodecContext *avctx)
 		hcedarv->close(hcedarv);
 		libcedarv_exit(hcedarv);
 	}
+	cedarx_hardware_exit(0);
 }
 
 
