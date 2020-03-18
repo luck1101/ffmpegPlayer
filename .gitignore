@@ -5,3 +5,6 @@ jni/obj/
 jni/ffmpeg/obj/local/armeabi-v7a/
 .settings/
 libs/
+bin/
+gen/
+jni/ffmpeg/obj/

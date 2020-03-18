@@ -46,7 +46,7 @@ av_cold int decode_init(AVCodecContext *avctx){
 	ret = cedarx_hardware_init(0);
 	if (ret < 0)
 	{
-		av_log(NULL, AV_LOG_WARNING, "cedarx_hardware_init failed\n");
+		av_log(NULL, AV_LOG_WARNING, "cedarx_hardware_init fail, test program quit.\n");
 	}
 
 	av_log(NULL, AV_LOG_WARNING, "decode_init width:height=%d:%d\n",avctx->width,avctx->height);
@@ -60,10 +60,11 @@ av_cold int decode_init(AVCodecContext *avctx){
 	
 	stream_info.video_width = avctx->width;
 	stream_info.video_height = avctx->height;
-	//stream_info.format = CEDARV_STREAM_FORMAT_H264; 
-	stream_info.format = CEDARV_STREAM_FORMAT_H264;
-	//stream_info.container_format = CEDARV_CONTAINER_FORMAT_UNKNOW;
-	//stream_info.container_format = CEDARV_CONTAINER_FORMAT_PMP;
+	//stream_info.frame_rate = 30*1000;
+	//stream_info.frame_duration = 0;
+	//stream_info.aspect_ratio = 800/480*1000;
+	stream_info.format = CEDARV_STREAM_FORMAT_H264; 
+	stream_info.container_format = CEDARV_CONTAINER_FORMAT_UNKNOW;
 
 	stream_info.init_data = NULL;
 	stream_info.init_data_len= 0;
