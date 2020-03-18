@@ -1,43 +1,40 @@
 LOCAL_PATH := $(call my-dir)
+CEDARX_LIB_PATH := /home/whx/Workspace/REL_05/1741.1/A33/android/frameworks/av/media/CedarX-Projects/CedarAndroidLib/
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libve
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libve.so
+include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libcedarxosal
-LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarxosal.so 
-include $(PREBUILT_SHARED_LIBRARY)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := libcedarv
-LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarv.so
-include $(PREBUILT_SHARED_LIBRARY)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := libcedarv_base
-LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarv_base.so 
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarxosal.so 
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libcedarv_adapter
-LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libcedarv_adapter.so
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarv_adapter.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libve
-LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libve.so
+LOCAL_MODULE := libcedarv_base
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarv_base.so 
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libsunxi_alloc
-LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libsunxi_alloc.so
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libsunxi_alloc.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libaw_h264enc
-LOCAL_SRC_FILES := $(LOCAL_PATH)/LIB_KK44_F50/libaw_h264enc.so 
+LOCAL_MODULE := libcedarv
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarv.so
 include $(PREBUILT_SHARED_LIBRARY)
+
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
-CEDARX_PATH:=/home/whx/urmet/android/framework/av/media/CedarX-Projects/CedarX/
+CEDARX_PATH:=/home/whx/Workspace/REL_05/1741.1/A33/android/frameworks/av/media/CedarX-Projects/CedarX/
 CEDARX_CHIP_VERSION:=F50
 CEDARX_USE_SUNXI_MEM_ALLOCATOR:=Y
 include $(LOCAL_PATH)/config.mak
@@ -1257,18 +1254,18 @@ LOCAL_SRC_FILES := $(tempSrc)
 
 LOCAL_SHARED_LIBRARIES := \
 						  libcedarv_adapter \
-						  libcedarv_base \
+						  libcedarxbase \
 						  libcedarxosal \
 						  libve \
-						  libcedarv \
-						  libaw_h264enc
+						  libcedarv 
+						  
 ifeq ($(CEDARX_USE_SUNXI_MEM_ALLOCATOR),Y)
 LOCAL_SHARED_LIBRARIES += \
 						 libsunxi_alloc \
 						 
 LOCAL_CFLAGS += -DUSE_SUNXI_MEM_ALLOCATOR						 
 endif	
-
+#LOCAL_CFLAGS += -D__STDC_CONSTANT_MACROS -Wl,-Map=test.map -g  
 LOCAL_ARM_MODE := arm
 LOCAL_LDLIBS += -llog
 include $(BUILD_SHARED_LIBRARY)
