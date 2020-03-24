@@ -233,49 +233,7 @@ void Java_sysu_ss_xu_FFmpeg_setScreenSize( JNIEnv* env, jobject thiz, int sWidth
 	screenWidth = sWidth;
 	screenHeight = sHeight;
 }
-
-void YUV420toRGB24(unsigned char *src0,unsigned char *src1,unsigned char *src2, unsigned char *rgb24, int width, int height)
-{
-	int R,G,B,Y,U,V;
-	int x,y;
-	int nWidth = width>>1; //色度信号宽度
-	for (y=0;y<height;y++)
-	{
-		for (x=0;x<width;x++)
-		{
-
-		    Y = *(src0 + y*width + x);
-
-		    U = *(src1 + ((y>>1)*nWidth) + (x>>1));
-
-		    V = *(src2 + ((y>>1)*nWidth) + (x>>1));
-
-		    R = Y + 1.402*(V-128);
-
-		    G = Y - 0.34414*(U-128) - 0.71414*(V-128);
-		    B = Y + 1.772*(U-128);
-
-		   //防止越界
-		    if (R>255)
-				R=255;
-		    if (R<0)
-				R=0;
-		    if (G>255)
-				G=255;
-		    if (G<0)
-				G=0;
-		    if (B>255)
-				B=255;
-		    if (B<0)
-				B=0;
-
-		   *(rgb24 + ((height-y-1)*width + x)*3) = B;
-		   *(rgb24 + ((height-y-1)*width + x)*3 + 1) = G;
-		   *(rgb24 + ((height-y-1)*width + x)*3 + 2) = R;
-
-		}
-	}
-}
+int YUV_COUNT = 0;
 
 /* for each decoded frame */
 jbyteArray Java_sysu_ss_xu_FFmpeg_getNextDecodedFrame( JNIEnv* env, jobject thiz )
@@ -290,6 +248,16 @@ while(av_read_frame(pFormatCtx, &packet)>=0) {
 		int ret = avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
 		sprintf(debugMsg, "ret = %d,frameFinished=%d\n", ret,frameFinished);
 		INFO(debugMsg);
+		/*if(frameFinished && pFrame->key_frame==1){
+			FILE *fp;
+			char name[20];
+			sprintf(name,"/sdcard/420_hw_%d.y",YUV_COUNT);
+			fp = fopen(name,"wb+");
+			fwrite(pFrame->data[0],1,pCodecCtx->width*pCodecCtx->height,fp);
+			av_log(NULL, AV_LOG_WARNING,"save y success\n");
+			fclose(fp);
+			YUV_COUNT++;
+		}*/
 
 		if(frameFinished) {
 			sprintf(debugMsg, "pCodecCtx->width =%d,pCodecCtx->height=%d,pCodecCtx->pix_fmt = %d,dstFmt=%d,key_frame = %d\n", pCodecCtx->width,pCodecCtx->height,pCodecCtx->pix_fmt,dstFmt,pFrame->key_frame);
@@ -301,9 +269,6 @@ while(av_read_frame(pFormatCtx, &packet)>=0) {
 			*/
 
 			sws_scale(img_convert_ctx, (const uint8_t* const*)pFrame->data, pFrame->linesize,0, pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
-			//pFrameRGB->data = pFrame->data;
-			//pFrameRGB->linesize =  pFrame->linesize;
-			//YUV420toRGB24(pFrame->data[0],pFrame->data[1],pFrame->data[2],buffer,pCodecCtx->width,pCodecCtx->height);
 
 			++frameCount;
 

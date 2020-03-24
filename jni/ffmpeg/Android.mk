@@ -124,6 +124,7 @@ AVCODEC_C_FILES = allcodecs.c                                                   
        resample2.c                                                      \
        simple_idct.c                                                    \
        utils.c                                                          \
+	   convert.c 									\
 
 # parts needed for many different codecs
 AVCODEC_C_FILES-$(CONFIG_AANDCT)                  += aandcttab.c

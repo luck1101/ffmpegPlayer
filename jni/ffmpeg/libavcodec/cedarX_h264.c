@@ -31,11 +31,14 @@
 #include "dsputil.h"
 #include "avcodec.h"
 #include <libcedarv.h>	//* for decoding video
+#include "convert.h"
 
 
 cedarv_decoder_t*	 		hcedarv;
 cedarv_stream_info_t		stream_info;
 cedarv_picture_t			ce_picture;
+ScalerParameter 			cdx_scaler_para;
+
 
 
 
@@ -108,6 +111,8 @@ void print_head(const uint8_t *buf){
 }
 int pts = 0 ;
 int flag_save = 1;
+void*   					dstYUV420;
+
 
 static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacket *avpkt)
 {
@@ -140,7 +145,6 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 			return ret;
 		}
 
-		
 		if(buf_size <= bufsize0) {
 			mem_cpy(buf0, buf, buf_size);
 			//cedarx_cache_op(buf0, (buf0 + bufsize0), 1); //flush cache
@@ -165,6 +169,8 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 		
 		int is_key_frame = (ret == 3)?1:0;
 		av_log(NULL, AV_LOG_WARNING,"decode result: %d\n", ret);
+
+		
 		if(ret == CEDARV_RESULT_FRAME_DECODED || ret == CEDARV_RESULT_KEYFRAME_DECODED){
 			ret = hcedarv->display_request(hcedarv, &ce_picture);
 			
@@ -172,7 +178,11 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 		
 			if(ret == CEDARV_RESULT_OK){
 				//todo:get decode data from ce_picture
-				av_log(NULL, AV_LOG_WARNING, "%d,%d:%d,pixel_format=%d,pts=%d\n",ce_picture.id,ce_picture.width,ce_picture.height,ce_picture.pixel_format,ce_picture.pts);
+				av_log(NULL, AV_LOG_WARNING, 
+				"%d,%d:%d,pixel_format=%d,pts=%d\n",
+				ce_picture.id,ce_picture.width,
+				ce_picture.height,ce_picture.pixel_format,
+				ce_picture.pts);
 
 				av_log(NULL, AV_LOG_WARNING, 
 				"y=%d,%p   u=%d,%p  v=%d,%p\n",
@@ -186,22 +196,28 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 				pict->height = ce_picture.height;
 				pict->key_frame = is_key_frame;
 				pict->pkt_pts = ce_picture.pts;
+
+				dstYUV420 = av_malloc(ce_picture.width*ce_picture.height*3/2);
 				
 				
-				//ret = av_image_alloc(pict->data, pict->linesize, ce_picture.width, ce_picture.height, ce_picture.pixel_format, 32);
+				ret = av_image_alloc(pict->data, pict->linesize, ce_picture.width, ce_picture.height, pict->format, 1);
+
 				
-				//memset(pict->data[0], 0, sizeof(pict->data[0]));
-				//memset(pict->data[1], 0, sizeof(pict->data[1]));
-				//memset(pict->data[2], 0, sizeof(pict->data[2]));
-				//av_log(NULL, AV_LOG_WARNING,"av_image_alloc ret = %d\n",ret);
+				convert_mb32_to_yv12(&cdx_scaler_para,dstYUV420,&ce_picture);
+				int tsize = cdx_scaler_para.width_out*cdx_scaler_para.height_out;
+				memcpy(pict->data[0],dstYUV420,tsize);
+				memcpy(pict->data[1],dstYUV420+tsize+(tsize/4),tsize/4);
+				memcpy(pict->data[2],dstYUV420+tsize,tsize/4);
+
+				/*
+				av_log(NULL, AV_LOG_WARNING,"av_image_alloc ret = %d\n",ret);
 				unsigned char* src_y = (unsigned char*)cedarv_address_phy2vir((void*)ce_picture.y);
 				unsigned char* src_u = (unsigned char*)cedarv_address_phy2vir((void*)ce_picture.u);
-				av_log(NULL, AV_LOG_WARNING,"cedarv_address_phy2vir success!!!!\n");
+				int y_size = ce_picture.width * ce_picture.height;
 				int u_size = ce_picture.width * ce_picture.height/4;
-				pict->data[0] = (uint8_t *)av_malloc(ce_picture.width * ce_picture.height+1);
-				pict->data[1] = (uint8_t *)av_malloc(u_size+1);
-				pict->data[2] = (uint8_t *)av_malloc(u_size+1);
-				memcpy(pict->data[0],src_y,ce_picture.width * ce_picture.height);
+
+				memcpy(pict->data[0],src_y,y_size);
+				
 				memcpy(pict->data[1],src_u,u_size);
 				memcpy(pict->data[2],src_u + u_size,u_size);
 
@@ -212,16 +228,16 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 					av_log(NULL, AV_LOG_WARNING,"save y success\n");
 					fclose(fp);
 					flag_save = 0;
+				}*/
 
-				}
-
-				pict->linesize[0] = ce_picture.width + 32;
-				pict->linesize[1] = 176;
-				pict->linesize[2] = 176;
+				//pict->linesize[0] = ce_picture.width + 32;
+				//pict->linesize[1] = 176;
+				//pict->linesize[2] = 176;
 				
 				*data_size = sizeof(AVFrame);
 				
 				ret = hcedarv->display_release(hcedarv, ce_picture.id);
+				av_free(dstYUV420);
 			}
 		}
 		av_log(NULL, AV_LOG_WARNING, "--------------end---------------decode_frame--------------------------\n");
