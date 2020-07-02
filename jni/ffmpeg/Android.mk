@@ -1,45 +1,84 @@
 LOCAL_PATH := $(call my-dir)
-CEDARX_LIB_PATH := /home/whx/Workspace/REL_05/1741.1/A33/android/frameworks/av/media/CedarX-Projects/CedarAndroidLib/
+CEDARX_LIB_PATH := /home/whx/Workspace/REL_05/1717.31/A64/android/out/target/product/tulip-p1/full/system/lib
+CEDARX_LIB_INCLUDE := /home/whx/Workspace/REL_05/1717.31/A64/android/frameworks/av/media/liballwinner/LIBRARY
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libve
-LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libve.so
+LOCAL_MODULE := libcutils
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libcutils.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libcedarxosal
-LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarxosal.so 
+LOCAL_MODULE := libutils
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libutils.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libcedarv_adapter
-LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarv_adapter.so
+LOCAL_MODULE := libplayer
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libplayer.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libcedarv_base
-LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarv_base.so 
+LOCAL_MODULE := libvdecoder
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libvdecoder.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libsunxi_alloc
-LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libsunxi_alloc.so
+LOCAL_MODULE := libadecoder
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libadecoder.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libcedarv
-LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/LIB_KK44_F50/libcedarv.so
+LOCAL_MODULE := libsdecoder
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libsdecoder.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libcdx_base
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libcdx_base.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libcdx_stream
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libcdx_stream.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libcdx_parser
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libcdx_parser.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libVE
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libVE.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libMemAdapter
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libMemAdapter.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libaw_plugin
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libaw_plugin.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libaw_wvm
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libaw_wvm.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libcrypto
+LOCAL_SRC_FILES := $(CEDARX_LIB_PATH)/libcrypto.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := ffmpeg
-CEDARX_PATH:=/home/whx/Workspace/REL_05/1741.1/A33/android/frameworks/av/media/CedarX-Projects/CedarX/
-CEDARX_CHIP_VERSION:=F50
-CEDARX_USE_SUNXI_MEM_ALLOCATOR:=Y
 include $(LOCAL_PATH)/config.mak
 LOCAL_DISABLE_FATAL_LINKER_WARNINGS=true
 LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -std=c99 -mfloat-abi=softfp -mfpu=neon -marm -march=armv7-a -mtune=cortex-a8
+
 CFLAGS += -mfpu=neon
 
 TARGET_ARCH_ABI :=armeabi-v7a
@@ -1228,14 +1267,6 @@ AVFORMAT_C_FILES += $(AVFORMAT_C_FILES-yes)
  
 AVFORMAT_SRC_FILES = $(addprefix libavformat/, $(sort $(AVFORMAT_C_FILES)))
 
-CEDARX_SRC_FILE += \
-    libcedarv/libcedarv/vdecoder.c \
-    libcedarv/libcedarv/awprintf.c \
-    libcedarv/fbm/fbm.c \
-    libcedarv/vbv/vbv.c \
-	libcedarv/adapter/cdxalloc/cdxalloc.c \
-    libcedarv/adapter/libve_adapter.c \
-    libcedarv/adapter/os_adapter.c
 
 tempSrc := \
 	$(SWSCALE_SRC_FILES) \
@@ -1243,30 +1274,40 @@ tempSrc := \
 	$(AVCODEC_SRC_FILES) \
 	$(AVCODEC_ARM_SRC_FILES) \
 	$(AVFORMAT_SRC_FILES) 
-#$(CEDARX_SRC_FILE)
-LOCAL_C_INCLUDES := $(LOCAL_PATH)\
-			$(CEDARX_PATH)/include \
-			$(CEDARX_PATH)/include/include_platform/CHIP_$(CEDARX_CHIP_VERSION) \
-			$(CEDARX_PATH)/include/include_platform/CHIP_$(CEDARX_CHIP_VERSION)/disp \
-			$(CEDARX_PATH)/include/include_cedarv \
-			$(CEDARX_PATH)/include/include_vencoder 
 
-LOCAL_SRC_FILES := $(tempSrc)
+
+LOCAL_C_INCLUDES := $(CEDARX_LIB_INCLUDE)/                                \
+                    $(CEDARX_LIB_INCLUDE)/VE/include                      \
+                    $(CEDARX_LIB_INCLUDE)/MEMORY/include                  \
+                    $(CEDARX_LIB_INCLUDE)/CODEC/VIDEO/DECODER/include     \
+                    $(CEDARX_LIB_INCLUDE)/CODEC/AUDIO/DECODER/include     \
+                    $(CEDARX_LIB_INCLUDE)/CODEC/SUBTITLE/DECODER/include  \
+                    $(CEDARX_LIB_INCLUDE)/DEMUX/BASE/include      \
+                    $(CEDARX_LIB_INCLUDE)/DEMUX/STREAM/include    \
+                    $(CEDARX_LIB_INCLUDE)/DEMUX/PARSER/include    \
+                    $(CEDARX_LIB_INCLUDE)/PLUGIN/include/ 
+					
 
 LOCAL_SHARED_LIBRARIES := \
-						  libcedarv_adapter \
-						  libcedarxbase \
-						  libcedarxosal \
-						  libve \
-						  libcedarv 
-						  
-ifeq ($(CEDARX_USE_SUNXI_MEM_ALLOCATOR),Y)
-LOCAL_SHARED_LIBRARIES += \
-						 libsunxi_alloc \
-						 
-LOCAL_CFLAGS += -DUSE_SUNXI_MEM_ALLOCATOR						 
-endif	
-#LOCAL_CFLAGS += -D__STDC_CONSTANT_MACROS -Wl,-Map=test.map -g  
+            libcutils       \
+            libutils        \
+            libplayer       \
+            libvdecoder     \
+            libadecoder     \
+            libsdecoder     \
+            libcdx_base     \
+            libcdx_stream   \
+            libcdx_parser   \
+            libVE           \
+            libMemAdapter   \
+            libaw_plugin    \
+            libaw_wvm       \
+            libcrypto
+
+
+
+#build start
+LOCAL_SRC_FILES := $(tempSrc)
 LOCAL_ARM_MODE := arm
 LOCAL_LDLIBS += -llog
 include $(BUILD_SHARED_LIBRARY)
