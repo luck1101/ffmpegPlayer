@@ -30,6 +30,12 @@
 #include "internal.h"
 #include "dsputil.h"
 #include "avcodec.h"
+#include "config.h"
+#include "CdxParser.h"
+#include "vdecoder.h"
+#include "adapter.h"
+#include "AwPluginManager.h"
+
 
 typedef struct CEDARXContext
 {
@@ -52,7 +58,7 @@ av_cold int decode_init(AVCodecContext *avctx){
 		return -1;
 	}
 	//init video stream info
-	cedarContext->VideoInfo.eCodecFormat = CEDARV_STREAM_FORMAT_H264;
+	cedarContext->VideoInfo.eCodecFormat = VIDEO_CODEC_FORMAT_H264;
 	cedarContext->VideoInfo.nWidth = avctx->width;
 	cedarContext->VideoInfo.nHeight = avctx->height;
 	cedarContext->VideoInfo.nCodecSpecificDataLen = 0;
@@ -69,7 +75,7 @@ av_cold int decode_init(AVCodecContext *avctx){
 		return -1;
 	}
 	AwPluginInit();
-	av_log(NULL, AV_LOG_WARNING,"%s open cedarx success.\n",__FUCTION__);
+	av_log(NULL, AV_LOG_WARNING,"%s open cedarx success.\n",__FUNCTION__);
 	return 0;
     
 }

@@ -162,8 +162,7 @@ AVCODEC_C_FILES = allcodecs.c                                                   
        resample.c                                                       \
        resample2.c                                                      \
        simple_idct.c                                                    \
-       utils.c                                                          \
-	   convert.c 									\
+       utils.c                                                          
 
 # parts needed for many different codecs
 AVCODEC_C_FILES-$(CONFIG_AANDCT)                  += aandcttab.c
@@ -1276,7 +1275,8 @@ tempSrc := \
 	$(AVFORMAT_SRC_FILES) 
 
 
-LOCAL_C_INCLUDES := $(CEDARX_LIB_INCLUDE)/                                \
+LOCAL_C_INCLUDES += $(LOCAL_PATH) \
+					$(CEDARX_LIB_INCLUDE)/                                \
                     $(CEDARX_LIB_INCLUDE)/VE/include                      \
                     $(CEDARX_LIB_INCLUDE)/MEMORY/include                  \
                     $(CEDARX_LIB_INCLUDE)/CODEC/VIDEO/DECODER/include     \
@@ -1285,7 +1285,8 @@ LOCAL_C_INCLUDES := $(CEDARX_LIB_INCLUDE)/                                \
                     $(CEDARX_LIB_INCLUDE)/DEMUX/BASE/include      \
                     $(CEDARX_LIB_INCLUDE)/DEMUX/STREAM/include    \
                     $(CEDARX_LIB_INCLUDE)/DEMUX/PARSER/include    \
-                    $(CEDARX_LIB_INCLUDE)/PLUGIN/include/ 
+                    $(CEDARX_LIB_INCLUDE)/PLUGIN/include/    \
+					/home/whx/Workspace/REL_05/1717.31/A64/android/system/core/include
 					
 
 LOCAL_SHARED_LIBRARIES := \
