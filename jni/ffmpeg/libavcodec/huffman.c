@@ -69,7 +69,6 @@ static int build_huff_tree(VLC *vlc, Node *nodes, int head, int flags)
  * nodes size must be 2*nb_codes
  * first nb_codes nodes.count must be set
  */
- 
 int ff_huff_build_tree(AVCodecContext *avctx, VLC *vlc, int nb_codes,
                        Node *nodes, HuffCmp cmp, int flags)
 {
