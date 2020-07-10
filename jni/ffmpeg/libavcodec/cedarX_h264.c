@@ -35,11 +35,15 @@
 #include "vdecoder.h"
 #include "adapter.h"
 #include "AwPluginManager.h"
+#include <stdbool.h>
+
 
 
 typedef struct CEDARXContext
 {
 	VideoDecoder *pVideoDec;
+	bool bufferInited;
+	unsigned char *m_buffer;
 }CEDARXContext;
 
 
@@ -48,7 +52,6 @@ av_cold int decode_init(AVCodecContext *avctx){
 	CEDARXContext *cedarContext = avctx->priv_data;
 	VConfig 			VideoConf;
 	VideoStreamInfo 	VideoInfo;
-	//memset(cedarContext,0,sizeof(CEDARXContext));
 	memset(&VideoInfo, 0, sizeof(VideoStreamInfo));
 	memset(&VideoConf, 0, sizeof(VConfig));
 	AwPluginInit();
@@ -64,8 +67,9 @@ av_cold int decode_init(AVCodecContext *avctx){
 	vp->eCodecFormat = VIDEO_CODEC_FORMAT_H264;
 	vp->nWidth = 800;
 	vp->nHeight = 480;
-	vp->nCodecSpecificDataLen = 0;
-	vp->pCodecSpecificData = NULL;
+	vp->nCodecSpecificDataLen = avctx->extradata_size;
+	vp->pCodecSpecificData = avctx->extradata;
+	av_log(NULL, AV_LOG_WARNING,"%s avctx->extradata_size = %d,avctx->extradata=%p.\n",__FUNCTION__,avctx->extradata_size,avctx->extradata);
 	
 	VideoConf.eOutputPixelFormat  = PIXEL_FORMAT_YV12;//PIXEL_FORMAT_YV12;
 	ret = InitializeVideoDecoder(cedarContext->pVideoDec, &VideoInfo, &VideoConf);
@@ -77,7 +81,10 @@ av_cold int decode_init(AVCodecContext *avctx){
 		cedarContext->pVideoDec = NULL;
 		return -1;
 	}
-	
+	ResetVideoDecoder(cedarContext->pVideoDec);
+	cedarContext->bufferInited = false;
+	if(cedarContext->m_buffer)
+		av_free(cedarContext->m_buffer);
 	av_log(NULL, AV_LOG_WARNING,"%s open cedarx success.\n",__FUNCTION__);
 	return 0;
     
@@ -97,17 +104,26 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
     int buf_size = avpkt->size;
 	AVFrame *pict = data;
 	CdxPacketT packet;
+	char* pBuf0;
 	int ret = -1;
-	av_log(NULL, AV_LOG_WARNING, "%s buf_size = %d\n",__FUNCTION__,buf_size);
+	int nValidSize;
+	int nStreamNum =0;
+	av_log(NULL, AV_LOG_WARNING,"%s avctx->extradata_size = %d,avctx->extradata=%p.\n",__FUNCTION__,avctx->extradata_size,avctx->extradata);
 	memset(&packet, 0, sizeof(packet));
 	if(buf_size != 0){
+		
+		nValidSize = VideoStreamBufferSize(pVideoDec, 0) - VideoStreamDataSize(pVideoDec, 0);
+		if(buf_size > nValidSize){
+			usleep(50 * 1000);
+		}
 		ret = RequestVideoStreamBuffer(pVideoDec,
 											buf_size,
-											(char**)&packet.buf,
+											&pBuf0,
 											&packet.buflen,
 											(char**)&packet.ringBuf,
 											&packet.ringBufLen,
 											0);
+		av_log(NULL, AV_LOG_WARNING, "%s RequestVideoStreamBuffer ret= %d,packet.buflen =%d,packet.ringBufLen=%d,nValidSize=%d,buf_size=%d\n",__FUNCTION__,ret,packet.buflen,packet.ringBufLen,nValidSize,buf_size);
 		if(ret != 0)
 		{
 			av_log(NULL, AV_LOG_WARNING, "%s RequestVideoStreamBuffer fail. request size: %d\n",__FUNCTION__, buf_size);
@@ -119,21 +135,25 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 			return -1;
 		}
 
-		memcpy(packet.buf,buf,buf_size);
-
+		
 		memset(&dataInfo, 0, sizeof(VideoStreamDataInfo));
-		dataInfo.pData		  = packet.buf;
+		dataInfo.pData		  = pBuf0;
 		dataInfo.nLength	  = buf_size;
 		dataInfo.nPts		  = avpkt->pts;
-		//dataInfo.nPcr		  = packet.pcr;
+		dataInfo.nPcr		  = -1;
 		dataInfo.bIsFirstPart = 1;
 		dataInfo.bIsLastPart = 1;
-		av_log(NULL, AV_LOG_WARNING, "%s SubmitVideoStreamData before.\n",__FUNCTION__);
+		memcpy(pBuf0, buf, buf_size);
+		
+		av_log(NULL, AV_LOG_WARNING, "%s SubmitVideoStreamData buf=%p,packet.buf=%p\n",__FUNCTION__,buf,packet.buf);
 		ret = SubmitVideoStreamData(pVideoDec , &dataInfo, 0);
 		av_log(NULL, AV_LOG_WARNING, "%s SubmitVideoStreamData ret = %d\n",__FUNCTION__,ret);
 		if(ret != 0){
 			av_log(NULL, AV_LOG_WARNING, "%s SubmitVideoStreamData error,ret = %d\n",__FUNCTION__,ret);
 		}
+		nStreamNum = VideoStreamFrameNum(pVideoDec, 0);
+		av_log(NULL, AV_LOG_WARNING, "%s SubmitVideoStreamData nStreamNum = %d\n",__FUNCTION__,nStreamNum);
+
 		ret = DecodeVideoStream(pVideoDec, 0 /*eos*/,0/*key frame only*/, 0/*drop b frame*/,0/*current time*/);
 		av_log(NULL, AV_LOG_WARNING, "%s DecodeVideoStream ret = %d\n",__FUNCTION__,ret);
 		if(ret == VDECODE_RESULT_KEYFRAME_DECODED || ret == VDECODE_RESULT_FRAME_DECODED){
@@ -144,6 +164,7 @@ static int decode_frame(AVCodecContext *avctx,void *data, int *data_size,AVPacke
 				av_log(NULL, AV_LOG_WARNING, "%s pPicture.ePixelFormat = %d,pPicture.nLineStride = %d\n",__FUNCTION__,pPicture->ePixelFormat,pPicture->nLineStride);
 				int nSizeY = pPicture->nWidth * pPicture->nHeight;
 				int nSizeUV = nSizeY >> 2;
+				av_image_alloc(pict->data, pict->linesize,pict->width, pict->height,PIX_FMT_YUV420P, 1);
 				//YV12 to YUV
 				memcpy(pict->data[0],pPicture->pData0,nSizeY);
 				memcpy(pict->data[1],pPicture->pData0 + nSizeY + nSizeUV,nSizeUV);
@@ -165,6 +186,11 @@ av_cold int decode_close(AVCodecContext *avctx)
 {
 	CEDARXContext *cedarContext = (CEDARXContext*)avctx->priv_data;
 	av_log(NULL, AV_LOG_WARNING, "%s\n",__FUNCTION__);
+	if (cedarContext->bufferInited) {//release video buffer
+		cedarContext->bufferInited = false;
+		if(cedarContext->m_buffer)
+			av_free(cedarContext->m_buffer);
+	}
 	DestroyVideoDecoder(cedarContext->pVideoDec);
 }
 

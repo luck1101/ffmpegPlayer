@@ -32,11 +32,23 @@ public class PlayerActivity extends Activity {
 	    Bundle bundle = getIntent().getExtras();
 	    playerView.play(bundle.getString("filePath"));
 	}
+	
+	
 
 	
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		playerView.close();
+	}
+
+
+
+
 	class PlayerView extends View implements Runnable {     	  
     	
-        private Bitmap bitmap;
+		private Bitmap bitmap;
 		private Paint p;
 		private FFmpeg ff;
 		private int width;
@@ -108,6 +120,10 @@ public class PlayerActivity extends Activity {
                 postInvalidate();
             }
         }
+		
+		public void close() {
+			ff.cleanUp();
+		}
     }
 
 }
